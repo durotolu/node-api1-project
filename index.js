@@ -13,7 +13,7 @@ app.post('/api/users', createNewUser)
 app.get('/api/users', getAllUsers)
 app.get('/api/users/:id', getUserById)
 app.delete('/api/users/:id', deleteUserById)
-// app.put('/api/users/:id', updatesUserById)
+app.put('/api/users/:id', updatesUserById)
 
 function createNewUser(req, res) {
     const user = {
@@ -101,6 +101,35 @@ function deleteUserById (req, res) {
             res.status(500).json({
                 success: false,
                 error: "The user could not be removed"
+            })
+        })
+}
+
+function updatesUserById (req, res) {
+    const changes = req.body
+    db.update(req.params.id, changes)
+        .then(user => {
+            if(!user) {
+                res.status(404).json({
+                    success: false,
+                    message: "The user with the specified ID does not exist." 
+                })
+            } else if (!changes.name || !changes.bio) {
+                res.status(400).json({
+                    success: false,
+                    errorMessage: "Please provide name and bio for the user."
+                })
+            } else if (user) {
+                changes.id = req.params.id
+                res.status(200).json({
+                    success: true,
+                    changes,
+                })
+            }
+        })
+        .catch(error => {
+            res.status(500).json({
+                error: "The user information could not be modified."
             })
         })
 }
